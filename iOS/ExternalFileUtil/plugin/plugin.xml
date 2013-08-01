@@ -1,0 +1,31 @@
+<plugin
+    xmlns="http://www.phonegap.com/ns/plugins/1.0"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    id="CDVExternalFileUtil"
+    version="0.1.0">
+
+    <name>External File Util</name>
+
+    <description>Open documents in an external program on the iOS device</description>
+
+    <engines>
+        <engine name="cordova" version=">=2.9.0" />
+    </engines>
+
+    <js-module src="js/ExternalFileUtil.js" name="ExternalFileUtil">
+         <clobbers target="ExternalFileUtil" />
+    </js-module>
+
+    <platform name="ios">
+        
+        <config-file target="config.xml" parent="/*">
+            <feature name="ExternalFileUtil">
+                <param name="ios-package" value="CDVExternalFileUtil" /> 
+            </feature>
+        </config-file>
+
+        <header-file src="obj-c/CDVExternalFileUtil.h" target-dir="CDVExternalFileUtil" />
+        <source-file src="obj-c/CDVExternalFileUtil.m" target-dir="CDVExternalFileUtil" />
+
+    </platform>
+</plugin>
