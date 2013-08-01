@@ -21,23 +21,17 @@
 @implementation CDVExternalFileUtil
 
 
-- (void) openWith:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options
+- (void) openWith:(CDVInvokedUrlCommand*)command
 {   
     CDVPluginResult* pluginResult;
-    NSString* callbackID = [arguments pop];
-    [callbackID retain];
     
-    NSString *path = [arguments objectAtIndex:0]; 
-    [path retain];
-    
-    NSString *uti = [arguments objectAtIndex:1]; 
-    [uti retain]; 
-    
-    //NSLog(@"path %@, uti:%@", path, uti);
+    NSString* path = [command.arguments objectAtIndex:0];
+    NSString* uti = [command.arguments objectAtIndex:1];
+    NSLog(@"path %@, uti:%@", path, uti);
     
     NSArray *parts = [path componentsSeparatedByString:@"/"];
     NSString *previewDocumentFileName = [parts lastObject];
-    //NSLog(@"The file name is %@", previewDocumentFileName);
+    NSLog(@"The file name is %@", previewDocumentFileName);
     
     NSData *fileRemote = [[NSData alloc] initWithContentsOfURL:[NSURL URLWithString:path]];
     
@@ -46,29 +40,27 @@
     NSString *documentsDirectory = [paths objectAtIndex:0];
     if (!documentsDirectory) {NSLog(@"Documents directory not found!");}
     localFile = [documentsDirectory stringByAppendingPathComponent:previewDocumentFileName];
-    [localFile retain];
     [fileRemote writeToFile:localFile atomically:YES];
-    //NSLog(@"Resource file '%@' has been written to the Documents directory from online", previewDocumentFileName);
-    
+    //NSLog(@"Resource file '%@' has been written to the Documents directory from online", previewDocumentFileName);    
     
     // Get file again from Documents directory
     NSURL *fileURL = [NSURL fileURLWithPath:localFile];
     
-    UIDocumentInteractionController *controller = [UIDocumentInteractionController  interactionControllerWithURL:fileURL];
-    [controller retain];
-    controller.delegate = self;
-    controller.UTI = uti;
+    if (![self docInteractionController]) {
+        [self setDocInteractionController:[UIDocumentInteractionController interactionControllerWithURL:fileURL]];
+        [[self docInteractionController] setDelegate:self];
+    } else {
+        [[self docInteractionController] setURL:fileURL];
+    }
+    
+    [[self docInteractionController] setUTI:uti];
     
     CDVViewController* cont = (CDVViewController*)[ super viewController ];
     CGRect rect = CGRectMake(0, 0, cont.view.bounds.size.width, cont.view.bounds.size.height);
-    [controller presentOpenInMenuFromRect:rect inView:cont.view animated:YES];
+    [[self docInteractionController] presentOpenInMenuFromRect:rect inView:cont.view animated:YES];
     
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString: @""];
-    [self writeJavascript: [pluginResult toSuccessCallbackString:callbackID]];
-    
-    [callbackID release];
-    [path release];
-    [uti release];
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 - (void) documentInteractionControllerDidDismissOpenInMenu:(UIDocumentInteractionController *)controller {
@@ -99,8 +91,6 @@
         BOOL success = [fileManager removeItemAtPath:localFile error:&error];
         if (!success) NSLog(@"Error: %@", [error localizedDescription]);
     }
-    [localFile release];
-    [controller release];
 }
 
 @end

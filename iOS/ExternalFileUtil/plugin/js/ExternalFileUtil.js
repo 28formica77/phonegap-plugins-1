@@ -11,7 +11,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-window.ExternalFileUtil = {
+module.exports = {
     
     openWith: function ( path, uti, success, fail) {
         return cordova.exec(success, fail, "ExternalFileUtil", "openWith", [path, uti]);
